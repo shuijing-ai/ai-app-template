@@ -1,0 +1,36 @@
+# Changelog
+
+本项目的显著变更记录在此。格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
+版本遵循 [Semantic Versioning](https://semver.org/lang/zh-CN/)。
+
+## [0.1.0] - 2026-08-18
+
+首个公开版本。
+
+### 新增
+
+- CLI：`ai-app-template create`（交互式 + `--template/--yes` 非交互）、`ai-app-template list`
+- 模板系统：base 全量骨架 + 变体文件级叠加 + `_overlay.json` 废弃清单 +
+  README 追加段；`str.replace` 渲染保持模板始终为合法源码
+- 三个内置模板：
+  - `review-flow`：parse → extract（条件边重试）→ review → summary，
+    每节点均有降级路径
+  - `rag-agent`：纯 Python TF-IDF 检索 + 带引用生成 + 确定性引用校验
+    （伪造引用剔除并带因重试）
+  - `multi-agent`：Supervisor 动态路由 researcher/writer/critic，
+    轮次预算强制收尾
+- 模型网关：指数退避重试（含抖动与上限）、每模型熔断器（closed/open/half-open）、
+  跨供应商降级链、成本/token 统计（1e-6 美元精度）
+- 成本感知路由：任务类型 + 输入长度 + 结构化要求 → light/standard/heavy，
+  决策带可解释 reasons
+- 结构化输出：XxxSet 约定、strict json_schema 适配、
+  `safe_extract_items` 统一安全解包（永不抛异常）
+- 可观测性：LangFuse 客户端类替换式零侵入接入（可选）、
+  JSON 结构化日志、`/health` 暴露网关统计与熔断状态
+- 自动化评测：评测集 + 一键跑分 + 双门槛（mock 验管道 / live 验质量）+
+  CI 退出码门禁 + Markdown 报告
+- 离线测试体系：节点级 FakeGateway（输入感知）与 SDK 级 ScriptedClient
+  两层替身；生成项目零 API Key 全绿
+- 工程配套：Dockerfile、docker-compose（可选观测栈 profile）、
+  GitHub Actions CI（ruff + pytest，3.10–3.12 双 OS）、八篇中文教程、
+  架构决策记录（ADR×10）、设计审查与发布指南

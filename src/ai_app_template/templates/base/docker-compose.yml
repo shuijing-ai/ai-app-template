@@ -1,0 +1,38 @@
+# 默认 `docker compose up` 不启动任何服务 —— 应用本身无外部依赖。
+# 自托管观测栈（可选）：
+#   docker compose --profile observability up -d
+# 然后在 .env 中设置：
+#   LANGFUSE_ENABLED=true
+#   LANGFUSE_PUBLIC_KEY / LANGFUSE_SECRET_KEY（在 LangFuse UI 创建项目后获取）
+services:
+  langfuse-db:
+    image: postgres:16-alpine
+    profiles: ["observability"]
+    environment:
+      POSTGRES_USER: langfuse
+      POSTGRES_PASSWORD: langfuse
+      POSTGRES_DB: langfuse
+    volumes:
+      - langfuse-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U langfuse"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  langfuse:
+    image: langfuse/langfuse:2
+    profiles: ["observability"]
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://langfuse:langfuse@langfuse-db:5432/langfuse
+      NEXTAUTH_SECRET: change-me-please
+      SALT: change-me-please
+      NEXTAUTH_URL: http://localhost:3000
+    depends_on:
+      langfuse-db:
+        condition: service_healthy
+
+volumes:
+  langfuse-db-data:

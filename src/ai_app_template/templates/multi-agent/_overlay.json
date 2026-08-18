@@ -1,0 +1,8 @@
+{
+  "exclude": [
+    "app/graph/nodes/parse_node.py",
+    "app/graph/nodes/extract_node.py",
+    "app/graph/nodes/review_node.py",
+    "app/graph/nodes/summary_node.py"
+  ]
+}
