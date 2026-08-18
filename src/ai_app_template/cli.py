@@ -73,8 +73,8 @@ def _next_steps(path: Path) -> Panel:
     return Panel("\n".join(lines), title="下一步", border_style="green")
 
 
-@app.command()
-def list(
+@app.command("list")
+def list_templates(
     detailed: bool = typer.Option(False, "--detailed", help="显示模板完整说明"),
 ) -> None:
     """列出内置模板。"""

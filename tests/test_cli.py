@@ -104,3 +104,31 @@ def test_console_script_entry_point():
     )
     assert result.returncode == 0, result.stderr
     assert "ai-app-template" in result.stdout
+
+
+def test_pick_template_interactively(monkeypatch, capsys):
+    """回归测试：交互式选择必须返回合法模板 ID。
+
+    曾因命令函数命名 ``def list`` 遮蔽内建 ``list()``，导致
+    ``ids = list(TEMPLATES)`` 实际执行了 typer 命令并拿到 None，
+    交互式创建在 ``enumerate(None)`` 处崩溃（非交互路径无此问题，
+    所以当时的测试全部通过）。本测试直接覆盖交互路径。
+    """
+    import builtins
+
+    import typer
+
+    import ai_app_template.cli as cli_mod
+
+    # 模块里不允许再出现遮蔽内建 list 的名字
+    assert getattr(cli_mod, "list", builtins.list) is builtins.list
+
+    monkeypatch.setattr(typer, "prompt", lambda *args, **kwargs: 2)
+    assert cli_mod._pick_template_interactively() == "rag-agent"
+
+    monkeypatch.setattr(typer, "prompt", lambda *args, **kwargs: 1)
+    assert cli_mod._pick_template_interactively() == "review-flow"
+
+    # 同时确认交互菜单真的打印了模板行（而非静默通过）
+    out = capsys.readouterr().out
+    assert "review-flow" in out

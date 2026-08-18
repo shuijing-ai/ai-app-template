@@ -34,3 +34,12 @@
 - 工程配套：Dockerfile、docker-compose（可选观测栈 profile）、
   GitHub Actions CI（ruff + pytest，3.10–3.12 双 OS）、八篇中文教程、
   架构决策记录（ADR×10）、设计审查与发布指南
+
+### 修复
+
+- 交互式创建崩溃：CLI 命令函数 `def list` 遮蔽了内建 `list()`，
+  导致 `_pick_template_interactively` 中 `ids = list(TEMPLATES)`
+  实际执行了 typer 命令并得到 `None`，在 `enumerate(None)` 处抛出
+  `TypeError: 'NoneType' object is not iterable`。命令函数已改名
+  `list_templates` 并通过 `@app.command("list")` 保持命令名不变；
+  新增交互路径回归测试（此前所有测试均走非交互分支，故未覆盖）。
