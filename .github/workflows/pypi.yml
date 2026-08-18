@@ -1,0 +1,41 @@
+name: Publish to PyPI
+
+# 发布方式（二选一）：
+# 1. 推送 main 后在 GitHub 上创建 Release —— 本工作流自动构建并发布（推荐）
+#    前置：在 PyPI「Pending publishers」注册 owner=shuijing-ai repo=ai-app-template workflow=pypi.yml
+# 2. 本地 twine upload dist/（详见 docs/publishing.md）
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install build
+      - run: python -m build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # Trusted Publishing 所需的 OIDC 令牌
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1

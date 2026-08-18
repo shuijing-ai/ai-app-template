@@ -50,24 +50,33 @@ git push origin v0.1.0
 
 ## 2. PyPI
 
-发布前先确认包名可用（`pip index versions ai-app-template` 或网页搜索；
-若被占用，备选 `ai-app-template-cli` / `aiappt`，改动 `pyproject.toml` 一处即可）。
+包名 `ai-app-template` 已确认可用（2026-08 检查；发布前再复核）。
+**发布物已构建并验证**：`python -m build` 通过、`twine check` 双 PASSED、
+干净 venv 安装 wheel 后 CLI 与模板生成均正常（模板已正确打进 wheel）。
+两种发布方式任选其一：
+
+### 方式一：本地 twine 上传（最快，5 分钟）
 
 ```bash
-pip install build twine
-python -m build                    # 产出 dist/*.whl 与 *.tar.gz
+pip install twine
+python -m build                    # 重新构建，产出 dist/*
 twine check dist/*                 # 元数据校验
-twine upload dist/*                # 需要 PyPI API Token
+twine upload dist/*                # 需要 PyPI 账号的 API Token
 ```
 
+### 方式二：Trusted Publishing（长期推荐，零 token）
+
+`.github/workflows/pypi.yml` 已就位。一次性配置：
+
+1. PyPI 网页 → Account settings → Add pending publisher：
+   owner=`shuijing-ai`，repo=`ai-app-template`，workflow=`pypi.yml`
+2. 之后每次在 GitHub 创建 Release，工作流自动构建并发布
+
+> 注意：README 的安装区已按「`pip install ai-app-template` 为主路径」编写。
+> 请在对外宣传（掘金/B站）之前先完成任一方式的发布；若决定暂不发布 PyPI，
+> 把 README 中英两版的安装块主路径换成源码版即可。
+
 验证：干净的虚拟环境里 `pip install ai-app-template && ai-app-template --version`。
-
-更专业的姿势是 **Trusted Publishing**（GitHub Actions 直接发布，无 token）：
-在 PyPI 创建 project → Publishing 绑定仓库与 workflow `pypi.yml`，
-然后加一个 release 触发的 workflow 调 `pypa/gh-action-pypi-publish`。
-
-发布后更新 README 安装命令为 `pip install ai-app-template`，
-并在教程 02 补一行「已发布」。
 
 ## 3. 内容平台（获客漏斗）
 

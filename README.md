@@ -29,8 +29,13 @@
 ## 快速开始
 
 ```bash
-# 从源码安装（首次发布 PyPI 后可 pip install ai-app-template）
-pip install -e .
+# 从 PyPI 安装（推荐）
+pip install ai-app-template
+
+# 或从源码安装（最新开发版）
+git clone https://github.com/shuijing-ai/ai-app-template.git
+cd ai-app-template && pip install -e .
+
 ai-app-template list                     # 查看内置模板
 ai-app-template create my-app            # 交互式创建
 ai-app-template create my-app -t rag-agent --yes   # 非交互（脚本/CI）

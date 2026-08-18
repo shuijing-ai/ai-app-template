@@ -32,8 +32,13 @@ Chinese tutorials explaining the engineering trade-offs.
 ## Quick start
 
 ```bash
-# From source (once published: pip install ai-app-template)
-pip install -e .
+# Install from PyPI (recommended)
+pip install ai-app-template
+
+# Or from source (latest development version)
+git clone https://github.com/shuijing-ai/ai-app-template.git
+cd ai-app-template && pip install -e .
+
 ai-app-template list                              # list built-in templates
 ai-app-template create my-app                    # interactive
 ai-app-template create my-app -t rag-agent --yes # non-interactive (scripts/CI)
