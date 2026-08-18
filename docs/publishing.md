@@ -72,9 +72,10 @@ twine upload dist/*                # 需要 PyPI 账号的 API Token
    owner=`shuijing-ai`，repo=`ai-app-template`，workflow=`pypi.yml`
 2. 之后每次在 GitHub 创建 Release，工作流自动构建并发布
 
-> 注意：README 的安装区已按「`pip install ai-app-template` 为主路径」编写。
-> 请在对外宣传（掘金/B站）之前先完成任一方式的发布；若决定暂不发布 PyPI，
-> 把 README 中英两版的安装块主路径换成源码版即可。
+> 当前状态：**暂缓发布**，README 以源码安装为主路径。等决定上线 PyPI 时，
+> 完成任一方式发布后，把 README 中英两版的安装块换成
+> `pip install ai-app-template` 主路径即可。`.github/workflows/pypi.yml`
+> 处于休眠状态（仅在创建 Release 时触发），无需移除。
 
 验证：干净的虚拟环境里 `pip install ai-app-template && ai-app-template --version`。
 

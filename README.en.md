@@ -32,12 +32,9 @@ Chinese tutorials explaining the engineering trade-offs.
 ## Quick start
 
 ```bash
-# Install from PyPI (recommended)
-pip install ai-app-template
-
-# Or from source (latest development version)
 git clone https://github.com/shuijing-ai/ai-app-template.git
-cd ai-app-template && pip install -e .
+cd ai-app-template
+pip install -e .        # a PyPI package (pip install ai-app-template) is on the roadmap
 
 ai-app-template list                              # list built-in templates
 ai-app-template create my-app                    # interactive
