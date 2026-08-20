@@ -80,9 +80,8 @@ python -m app.eval.run_eval --mock   # offline eval smoke run
 The tutorials are currently written in Chinese (English translations are on the roadmap — PRs welcome):
 
 - [Architecture & ADRs](docs/architecture.md) — overall design and 10 architecture decision records
-- [Design review](docs/design-review.md) — how the original 6-week plan was reviewed and improved
-- [Tutorials](docs/tutorials/) — eight deep-dives: CLI internals, model gateway, LangGraph workflows, structured output, observability & evaluation, and an interview-prep guide
-- [Publishing guide](docs/publishing.md) — shipping to GitHub / PyPI and content platforms
+- [Design proposals](docs/designs/) — the auto-eval design doc (generated eval suites + regression gating)
+- [Tutorials](docs/tutorials/) — nine deep-dives: CLI internals, model gateway, LangGraph workflows, structured output, observability & evaluation, auto-eval, and an interview-prep guide
 
 ## Developing this repo
 

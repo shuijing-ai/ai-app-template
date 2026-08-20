@@ -25,3 +25,6 @@ demo-app/
 Thumbs.db
 .idea/
 .vscode/
+
+# 本地私有文档（仅本人查看，不进仓库）
+private/

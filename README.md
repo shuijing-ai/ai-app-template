@@ -96,9 +96,8 @@ ai-app-template doctor --path my-app      # 生成项目全量体检
 ## 文档
 
 - [docs/architecture.md](docs/architecture.md) —— 整体架构与关键设计决策（ADR）
-- [docs/design-review.md](docs/design-review.md) —— 对初版方案的审查与优化记录
+- [docs/designs/](docs/designs/) —— 设计提案（auto-eval 自动评测与回退门禁）
 - [docs/tutorials/](docs/tutorials/) —— **九篇中文教程**（从 CLI 实现到面试话术）
-- [docs/publishing.md](docs/publishing.md) —— 发布到 GitHub / PyPI / 掘金 / B 站的操作指南
 
 ## 开发本仓库
 

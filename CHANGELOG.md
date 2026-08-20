@@ -52,7 +52,7 @@
   支持可选 `template.json` 清单与 `_overlay.json`/`README_APPEND.md` 约定
 - 工程配套：Dockerfile、docker-compose（可选观测栈 profile）、
   GitHub Actions CI（ruff + pytest，3.10–3.12 双 OS）、九篇中文教程、
-  架构决策记录（ADR×10）、设计审查与发布指南
+  架构决策记录（ADR×10）与设计提案
 
 ### 修复
 

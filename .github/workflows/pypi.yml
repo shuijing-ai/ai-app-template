@@ -3,7 +3,7 @@ name: Publish to PyPI
 # 发布方式（二选一）：
 # 1. 推送 main 后在 GitHub 上创建 Release —— 本工作流自动构建并发布（推荐）
 #    前置：在 PyPI「Pending publishers」注册 owner=shuijing-ai repo=ai-app-template workflow=pypi.yml
-# 2. 本地 twine upload dist/（详见 docs/publishing.md）
+# 2. 本地 twine upload dist/
 
 on:
   release:
