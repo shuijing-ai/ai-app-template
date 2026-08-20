@@ -1,7 +1,10 @@
-"""一键评测脚本（rag-agent 版）。
+"""一键评测脚本（rag-agent 版）：套件化跑分 + 基线对比 + 回退结论。
 
-用法与产出同 base 版；评分维度换成 RAG 语义：
-关键词命中率 / 引用数量 / 引用合法性 / 延迟。
+用法：
+    python -m app.eval.run_eval --mock             # 离线冒烟（CI），只验管道
+    python -m app.eval.run_eval --suite all        # 真实模式：种子 + 全部生成集
+    python -m app.eval.run_eval --suite boundary   # 只跑某一套件
+    python -m app.eval.run_eval --set-baseline     # 签字认可当前质量线
 """
 
 from __future__ import annotations
@@ -14,6 +17,14 @@ from pathlib import Path
 
 try:
     from app.config import get_settings
+    from app.eval.compare import (
+        Verdict,
+        compare,
+        load_baseline,
+        save_baseline,
+        suite_scores,
+        total_score,
+    )
     from app.eval.test_cases import SAMPLE_CASES, EvalCase
     from app.graph.builder import build_graph
 except ModuleNotFoundError as exc:
@@ -22,6 +33,51 @@ except ModuleNotFoundError as exc:
         '    pip install -e ".[dev]"\n'
         "（国内网络不畅可加：-i https://pypi.tuna.tsinghua.edu.cn/simple）\n"
     ) from None
+
+GENERATED_DIR = Path("app/eval/generated")
+BASELINE_PATH = Path("app/eval/baseline.json")
+SUITES = ["all", "seed", "happy", "boundary", "anomaly", "adversarial"]
+
+
+def load_suite(suite: str, generated_dir: Path = GENERATED_DIR) -> list[EvalCase]:
+    """seed=手写种子；层级名=读固化生成集；all=全部。同 id 去重。"""
+    cases: list[EvalCase] = []
+    if suite in ("all", "seed"):
+        cases.extend(SAMPLE_CASES)
+
+    if suite == "all":
+        paths = sorted(generated_dir.glob("*.json"))
+    elif suite != "seed":
+        path = generated_dir / f"{suite}.json"
+        if not path.is_file():
+            raise SystemExit(
+                f"套件 {suite!r} 不存在：先运行 python -m app.eval.gen_cases --tier {suite} 生成并固化"
+            )
+        paths = [path]
+    else:
+        paths = []
+
+    for path in paths:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        for row in data.get("cases", []):
+            cases.append(
+                EvalCase(
+                    id=row.get("id", f"{path.stem}-{len(cases):03d}"),
+                    query=row.get("query", ""),
+                    expect_keywords=row.get("expect_keywords", []),
+                    expect_min_citations=row.get("expect_min_citations", 0),
+                    tier=row.get("tier", path.stem),
+                    notes=row.get("notes", ""),
+                )
+            )
+
+    seen: set[str] = set()
+    deduped: list[EvalCase] = []
+    for case in cases:
+        if case.id not in seen:
+            seen.add(case.id)
+            deduped.append(case)
+    return deduped
 
 
 def run_case(graph, case: EvalCase, threshold: float, mock: bool = False) -> dict:
@@ -45,6 +101,7 @@ def run_case(graph, case: EvalCase, threshold: float, mock: bool = False) -> dic
         )
     return {
         "case_id": case.id,
+        "tier": case.tier,
         "passed": passed,
         "keyword_hit": round(hit_rate, 3),
         "keywords": keywords,
@@ -58,22 +115,22 @@ def run_case(graph, case: EvalCase, threshold: float, mock: bool = False) -> dic
 
 
 def _print_table(rows: list[dict]) -> None:
-    header = f"{'用例':<18}{'结果':<6}{'关键词命中':<10}{'引用数':<8}{'引用合法':<8}{'耗时(s)':<8}"
+    header = f"{'用例':<20}{'层级':<13}{'结果':<6}{'关键词命中':<10}{'引用数':<8}{'引用合法':<8}{'耗时(s)':<8}"
     print("\n" + header)
     print("-" * len(header))
     for r in rows:
         mark = "PASS" if r["passed"] else "FAIL"
         print(
-            f"{r['case_id']:<18}{mark:<6}{r['keyword_hit']:<10}{r['citations_count']:<8}"
+            f"{r['case_id']:<20}{r['tier']:<13}{mark:<6}{r['keyword_hit']:<10}{r['citations_count']:<8}"
             f"{('ok' if r['citation_valid'] else 'BAD'):<8}{r['latency_s']:<8}"
         )
     total = len(rows)
     passed = sum(1 for r in rows if r["passed"])
     print("-" * len(header))
-    print(f"合计: {passed}/{total} 通过，平均耗时 {sum(r['latency_s'] for r in rows) / total:.3f}s\n")
+    print(f"合计: {passed}/{total} 通过，平均耗时 {sum(r['latency_s'] for r in rows) / total:.3f}s")
 
 
-def _write_report(rows: list[dict], out_dir: Path, mock: bool) -> None:
+def _write_report(rows: list[dict], out_dir: Path, mock: bool, verdict: Verdict | None = None) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "results.json").write_text(
         json.dumps({"mode": "mock" if mock else "live", "results": rows}, ensure_ascii=False, indent=2),
@@ -85,24 +142,54 @@ def _write_report(rows: list[dict], out_dir: Path, mock: bool) -> None:
         f"- 模式：{'离线 mock' if mock else '真实调用'}",
         f"- 通过：{sum(1 for r in rows if r['passed'])}/{len(rows)}",
         "",
-        "| 用例 | 结果 | 关键词命中 | 引用数 | 引用合法 | 耗时(s) |",
-        "| --- | --- | --- | --- | --- | --- |",
+        "| 用例 | 层级 | 结果 | 关键词命中 | 引用数 | 引用合法 | 耗时(s) |",
+        "| --- | --- | --- | --- | --- | --- | --- |",
     ]
     for r in rows:
         lines.append(
-            f"| {r['case_id']} | {'✅' if r['passed'] else '❌'} | {r['keyword_hit']} "
+            f"| {r['case_id']} | {r['tier']} | {'✅' if r['passed'] else '❌'} | {r['keyword_hit']} "
             f"| {r['citations_count']} | {'ok' if r['citation_valid'] else 'BAD'} | {r['latency_s']} |"
         )
+    if verdict:
+        lines += [
+            "",
+            f"## 质量门禁结论：{verdict.action}",
+            "",
+            verdict.summary,
+            "",
+            *(f"- {reason}" for reason in verdict.reasons),
+        ]
     (out_dir / "report.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def _print_verdict(scores: dict, total: float, baseline: dict | None, verdict: Verdict) -> None:
+    print("\n===== 质量门禁（live） =====")
+    for tier, s in scores.items():
+        base_s = (baseline or {}).get("scores", {}).get(tier)
+        delta = f" Δ{(s['score'] - base_s['score']) * 100:+.1f}pp" if base_s else ""
+        print(
+            f"  {tier:<14} score={s['score']:.3f} pass={s['pass_rate']:.0%} "
+            f"hit={s['keyword_hit_avg']:.2f}{delta}"
+        )
+    print(f"  {'total':<14} score={total:.3f}")
+    print(f"\n结论 [{verdict.action}] {verdict.summary}")
+    for reason in verdict.reasons:
+        print(f"  - {reason}")
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="RAG 模板自动化评测")
     parser.add_argument("--mock", action="store_true", help="离线模式：使用 FakeGateway")
+    parser.add_argument("--suite", choices=SUITES, default="all", help="跑哪个套件（默认 all）")
     parser.add_argument("--limit", type=int, default=0)
     parser.add_argument("--threshold", type=float, default=None)
     parser.add_argument("--out", type=str, default="eval_results")
+    parser.add_argument("--set-baseline", action="store_true", help="把本次跑分固化为基线（仅真实模式）")
     args = parser.parse_args(argv)
+
+    if args.mock and args.set_baseline:
+        print("--set-baseline 仅用于真实模式（mock 没有质量语义）", file=sys.stderr)
+        return 2
 
     settings = get_settings()
     threshold = args.threshold if args.threshold is not None else settings.eval_min_keyword_hit
@@ -116,21 +203,38 @@ def main(argv: list[str] | None = None) -> int:
 
         gateway = get_gateway()
 
-    cases = SAMPLE_CASES[: args.limit] if args.limit else SAMPLE_CASES
+    cases = load_suite(args.suite)
+    if args.limit:
+        cases = cases[: args.limit]
+    if not cases:
+        print(f"套件 {args.suite!r} 为空：先运行 python -m app.eval.gen_cases 生成用例", file=sys.stderr)
+        return 2
+
     graph = build_graph(gateway, settings)
     rows = [run_case(graph, case, threshold, mock=args.mock) for case in cases]
 
     _print_table(rows)
-    _write_report(rows, Path(args.out), args.mock)
-    if args.mock:
-        print("（mock 模式：仅验证管道连通性；引用/关键词门槛在真实模式生效）")
 
-    failed = [r["case_id"] for r in rows if not r["passed"]]
-    if failed:
-        print(f"未达标用例（阈值 {threshold}）: {', '.join(failed)}", file=sys.stderr)
-        return 1
-    print(f"全部通过（阈值 {threshold}）。报告见 {args.out}/report.md")
-    return 0
+    if args.mock:
+        _write_report(rows, Path(args.out), mock=True)
+        print("（mock 模式：仅验证管道连通性；引用/关键词门槛与回退判定在真实模式生效）")
+        failed = [r["case_id"] for r in rows if not r["passed"]]
+        return 1 if failed else 0
+
+    scores = suite_scores(rows)
+    total = total_score(scores)
+
+    if args.set_baseline:
+        save_baseline(BASELINE_PATH, scores, total)
+        _write_report(rows, Path(args.out), mock=False)
+        print(f"\n基线已固化到 {BASELINE_PATH}（total={total:.3f}）。之后每次跑分将自动对比并给出回退结论。")
+        return 0
+
+    baseline = load_baseline(BASELINE_PATH)
+    verdict, _detail = compare(rows, baseline)
+    _write_report(rows, Path(args.out), mock=False, verdict=verdict)
+    _print_verdict(scores, total, baseline, verdict)
+    return verdict.exit_code
 
 
 if __name__ == "__main__":

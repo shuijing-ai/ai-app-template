@@ -16,6 +16,7 @@ class EvalCase:
     document: str
     expect_keywords: list[str] = field(default_factory=list)  # 在 findings+summary 中应出现
     expect_min_findings: int = 0
+    tier: str = "seed"  # 手写种子用例；生成用例为 happy/boundary/anomaly/adversarial
     notes: str = ""
 
 

@@ -1,0 +1,18 @@
+{
+  "identity": {
+    "name": "合同风险审阅助手",
+    "description": "输入中文商务文档（合同、项目计划、报告），输出结构化风险发现与汇总结论",
+    "audience": "法务与商务团队",
+    "input_examples": [
+      "## 交付条款\n乙方应在本合同签订后三个月内完成全部交付，具体范围以双方沟通为准。\n\n## 违约条款\n如乙方延期，违约金为合同总额的百分之五十，按日累计。"
+    ],
+    "quality_policy": {
+      "recall_bias": true,
+      "refuse_out_of_scope": true
+    }
+  },
+  "generation": {
+    "per_taxonomy": 3,
+    "tiers": ["happy", "boundary", "anomaly", "adversarial"]
+  }
+}

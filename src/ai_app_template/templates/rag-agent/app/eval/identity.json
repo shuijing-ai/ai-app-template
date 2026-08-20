@@ -1,0 +1,18 @@
+{
+  "identity": {
+    "name": "电商知识库问答助手",
+    "description": "基于商品知识库（退货政策、会员体系、配送时效、数据安全）回答用户问题，回答必须带可验证的引用",
+    "audience": "电商平台客服与用户",
+    "input_examples": [
+      "退货政策是什么？运费谁承担？"
+    ],
+    "quality_policy": {
+      "recall_bias": false,
+      "refuse_out_of_scope": true
+    }
+  },
+  "generation": {
+    "per_taxonomy": 3,
+    "tiers": ["happy", "boundary", "anomaly", "adversarial"]
+  }
+}

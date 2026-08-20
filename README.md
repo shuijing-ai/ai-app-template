@@ -91,7 +91,8 @@ make demo          # 本地生成一个演示项目体验 CLI
 
 ## 路线图
 
-- [ ] 自动评测集生成与回退门禁：身份卡进 → 边界/异常用例出 → 基线对比给出回退结论（[设计定稿](docs/designs/auto-eval-design.md)）
+- [x] 自动评测集生成与回退门禁（P0+P1）：身份卡进 → 边界/异常/对抗用例出 → 基线对比给出回退结论（[设计文档](docs/designs/auto-eval-design.md)）
+- [ ] auto-eval P2：`--suggest` 变更感知、CI PR 注释、`--runs 3` 抗波动
 - [ ] 发布 PyPI（`pip install ai-app-template`）
 - [ ] `ai-app-template doctor`：环境体检（Python 版本 / API Key / 端口占用）
 - [ ] 第四个模板：`voice-flow`（语音转写 -> 摘要 -> 待办抽取）

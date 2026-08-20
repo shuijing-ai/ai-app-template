@@ -11,6 +11,7 @@ class EvalCase:
     query: str
     expect_keywords: list[str] = field(default_factory=list)  # 应出现在 answer 中
     expect_min_citations: int = 0
+    tier: str = "seed"  # 手写种子用例；生成用例为 happy/boundary/anomaly/adversarial
     notes: str = ""
 
 

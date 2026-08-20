@@ -1,0 +1,18 @@
+{
+  "identity": {
+    "name": "内容创作小团队",
+    "description": "supervisor 调度 researcher/writer/critic 协作完成中文短文案任务（产品介绍、邀约邮件、概念解释）",
+    "audience": "市场与运营团队",
+    "input_examples": [
+      "为一款办公软件写一段 100 字以内的产品介绍，突出协作与安全两个卖点。"
+    ],
+    "quality_policy": {
+      "recall_bias": false,
+      "refuse_out_of_scope": true
+    }
+  },
+  "generation": {
+    "per_taxonomy": 3,
+    "tiers": ["happy", "boundary", "anomaly", "adversarial"]
+  }
+}

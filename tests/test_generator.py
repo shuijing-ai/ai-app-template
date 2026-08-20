@@ -37,9 +37,14 @@ BASE_REQUIRED_FILES = [
     "app/observability/langfuse_setup.py",
     "app/eval/test_cases.py",
     "app/eval/run_eval.py",
+    "app/eval/taxonomy.py",
+    "app/eval/compare.py",
+    "app/eval/gen_cases.py",
+    "app/eval/identity.json",
     "app/utils/extractor.py",
     "app/utils/logger.py",
     "tests/test_gateway.py",
+    "tests/test_eval_tooling.py",
 ]
 
 VARIANT_SPECIFIC = {

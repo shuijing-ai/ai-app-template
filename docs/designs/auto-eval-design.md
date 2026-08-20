@@ -1,6 +1,15 @@
 # 设计提案：自动评测集生成与回退门禁（auto-eval）
 
-> 状态：设计定稿，待实施（P0 → P1 → P2 分期见文末）
+> 状态：**P0 + P1 已实现**（P2 的 `--suggest` 变更感知、CI PR 注释、`--runs 3` 多次采样未实现，按需追加）
+>
+> 实施与设计的差异（以实现为准）：
+> 1. 身份卡用 **`identity.json`** 而非 YAML——生成项目不为此引入 PyYAML 依赖（与 ADR-3 薄依赖一致）；
+> 2. 基线固化在 `app/eval/baseline.json`（进 git，随源码版本化），历史跑分仍在 `eval_results/`（本地）；
+> 3. 回退判定修正了一处设计矛盾：boundary/adversarial 焦点套件**单独适用 15pp 警告线**而非
+>    10pp 回退线（否则 warn 分支永不可达——任何 >15pp 的跌幅必然先触发 10pp 套件回退）；
+> 4. 三模板的 `taxonomy.py` / `compare.py` 为同源文件，`gen_cases.py` / `run_eval.py` 仅差输入字段映射
+>    （review= document/findings，rag= query/citations，multi= task/drafts）。
+
 > 目标读者：本仓库贡献者、模板使用者、以及想把同类机制搬进自己项目的人
 
 ## 1. 问题定义
