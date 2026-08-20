@@ -117,6 +117,7 @@ make demo          # 本地生成一个演示项目体验 CLI
 - [x] 第四个模板 `voice-flow`：会议转写 -> 摘要/议题/去重待办
 - [x] 模板市场：从任意 git 仓库安装第三方模板（`-t <git-url>[#子目录]`）
 - [ ] 发布 PyPI（`pip install ai-app-template`）
+- [ ] 生态种子：模板作者指南 + 最小示例模板仓库 + `ai-app-template validate` 结构校验
 - [ ] 英文完整文档
 
 ## License
