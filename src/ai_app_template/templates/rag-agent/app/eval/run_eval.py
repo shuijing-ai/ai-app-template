@@ -12,9 +12,16 @@ import sys
 import time
 from pathlib import Path
 
-from app.config import get_settings
-from app.eval.test_cases import SAMPLE_CASES, EvalCase
-from app.graph.builder import build_graph
+try:
+    from app.config import get_settings
+    from app.eval.test_cases import SAMPLE_CASES, EvalCase
+    from app.graph.builder import build_graph
+except ModuleNotFoundError as exc:
+    raise SystemExit(
+        f"\n[依赖缺失] 未安装 {exc.name}。请先在项目根目录执行：\n"
+        '    pip install -e ".[dev]"\n'
+        "（国内网络不畅可加：-i https://pypi.tuna.tsinghua.edu.cn/simple）\n"
+    ) from None
 
 
 def run_case(graph, case: EvalCase, threshold: float, mock: bool = False) -> dict:
