@@ -1,0 +1,18 @@
+{
+  "identity": {
+    "name": "会议纪要助手",
+    "description": "输入会议/通话的 ASR 转写文本（含时间戳与说话人标签），输出结构化摘要、议题与待办清单",
+    "audience": "项目经理与会议参与者",
+    "input_examples": [
+      "[00:01] 张三：这次发布会定在两周后，验收标准我来补。[00:25] 李四：风险这块我跟进同步。"
+    ],
+    "quality_policy": {
+      "recall_bias": false,
+      "refuse_out_of_scope": true
+    }
+  },
+  "generation": {
+    "per_taxonomy": 3,
+    "tiers": ["happy", "boundary", "anomaly", "adversarial"]
+  }
+}

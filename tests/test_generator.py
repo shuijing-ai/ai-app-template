@@ -56,11 +56,17 @@ VARIANT_SPECIFIC = {
         "tests/test_store.py",
     ],
     "multi-agent": ["app/graph/nodes/supervisor_node.py", "app/graph/nodes/critic_node.py"],
+    "voice-flow": [
+        "app/graph/nodes/ingest_node.py",
+        "app/graph/nodes/finalize_node.py",
+        "tests/test_graph.py",
+    ],
 }
 
 VARIANT_EXCLUDED = {
     "rag-agent": ["app/graph/nodes/parse_node.py", "app/graph/nodes/review_node.py"],
     "multi-agent": ["app/graph/nodes/parse_node.py", "app/graph/nodes/summary_node.py"],
+    "voice-flow": ["app/graph/nodes/parse_node.py", "app/graph/nodes/review_node.py"],
 }
 
 

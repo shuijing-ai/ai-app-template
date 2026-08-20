@@ -60,6 +60,7 @@ python -m app.eval.run_eval --mock   # offline eval smoke run
 | `review-flow` (default) | `parse -> extract ->(retry) review -> summary` | Getting started; document review apps |
 | `rag-agent` | `retrieve -> generate(citations) -> verify` | Knowledge-base Q&A with deterministic citation checks |
 | `multi-agent` | `supervisor -> researcher/writer/critic loop` | Supervisor-pattern agent teams with a round budget |
+| `voice-flow` | `ingest -> summarize -> extract_todos -> finalize` | Meeting transcripts to summaries/topics/deduped todos; ASR stays external |
 
 ## What's inside every generated project
 
@@ -95,10 +96,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the three-step guide to adding a new 
 
 ## Roadmap
 
+- [x] `ai-app-template doctor` — environment check (version/git/structure/deps/API keys/ports)
+- [x] Fourth template `voice-flow`: transcripts -> summary/topics/deduped todos
+- [x] Template marketplace: install third-party templates from any git repo (`-t <git-url>[#subdir]`)
 - [ ] Publish to PyPI (`pip install ai-app-template`)
-- [ ] `ai-app-template doctor` — environment check (Python version / API keys / ports)
-- [ ] Fourth template: `voice-flow` (transcription -> summary -> todo extraction)
-- [ ] Template marketplace: install third-party templates from any git repo
 - [ ] English translations of the tutorials
 
 ## License

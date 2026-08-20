@@ -96,42 +96,58 @@ def _copy_tree(src: Path, dst: Path, ctx: dict[str, str], written: list[Path]) -
         written.append(target)
 
 
-def generate(target_dir: Path, template_id: str, ctx: dict[str, str]) -> list[Path]:
+def generate(
+    target_dir: Path,
+    template_id: str,
+    ctx: dict[str, str],
+    variant_dir: Path | None = None,
+) -> list[Path]:
     """把 base + 变体叠加渲染到 target_dir，返回写入的文件列表。
 
     变体目录可包含两个特殊文件（不进入生成结果）：
     - ``_overlay.json``：{"exclude": [...]} 声明 base 中被本变体废弃的文件；
     - ``README_APPEND.md``：内容追加到生成项目 README 末尾。
+
+    ``variant_dir`` 允许指定外部变体目录（模板市场：任意 git 仓库），
+    缺省在包内 ``TEMPLATES_DIR`` 查找。
     """
     base_dir = TEMPLATES_DIR / "base"
-    variant_dir = TEMPLATES_DIR / template_id
-    if template_id != "base" and not variant_dir.is_dir():
-        raise GeneratorError(f"未知模板: {template_id!r}")
+    if variant_dir is None:
+        variant_dir = TEMPLATES_DIR / template_id
+        if template_id != "base" and not variant_dir.is_dir():
+            raise GeneratorError(f"未知模板: {template_id!r}")
 
     target_dir.mkdir(parents=True, exist_ok=True)
     written: list[Path] = []
     _copy_tree(base_dir, target_dir, ctx, written)
 
     if variant_dir.is_dir():
-        manifest_path = variant_dir / "_overlay.json"
-        if manifest_path.is_file():
-            import json
-
-            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-            for rel in manifest.get("exclude", []):
-                victim = target_dir / rel
-                if victim.is_file():
-                    victim.unlink()
-                    written.remove(victim)
-
-        _copy_tree(variant_dir, target_dir, ctx, written)
-
-        append_path = variant_dir / "README_APPEND.md"
-        if append_path.is_file():
-            appended = "\n" + _render(append_path.read_text(encoding="utf-8"), ctx).lstrip()
-            readme = target_dir / "README.md"
-            readme.write_text(readme.read_text(encoding="utf-8") + appended, encoding="utf-8")
+        _apply_variant(variant_dir, target_dir, ctx, written)
     return written
+
+
+def _apply_variant(
+    variant_dir: Path, target_dir: Path, ctx: dict[str, str], written: list[Path]
+) -> None:
+    """叠加一个变体目录：废弃清单 -> 文件覆盖 -> README 追加。"""
+    manifest_path = variant_dir / "_overlay.json"
+    if manifest_path.is_file():
+        import json
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        for rel in manifest.get("exclude", []):
+            victim = target_dir / rel
+            if victim.is_file():
+                victim.unlink()
+                written.remove(victim)
+
+    _copy_tree(variant_dir, target_dir, ctx, written)
+
+    append_path = variant_dir / "README_APPEND.md"
+    if append_path.is_file():
+        appended = "\n" + _render(append_path.read_text(encoding="utf-8"), ctx).lstrip()
+        readme = target_dir / "README.md"
+        readme.write_text(readme.read_text(encoding="utf-8") + appended, encoding="utf-8")
 
 
 def assert_fully_rendered(target_dir: Path) -> list[Path]:

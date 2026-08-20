@@ -51,4 +51,14 @@ TEMPLATES: dict[str, TemplateInfo] = {
         graph_shape="supervisor ->(动态路由) researcher|writer|critic -> supervisor ...",
         tags=("multi-agent", "supervisor", "orchestration"),
     ),
+    "voice-flow": TemplateInfo(
+        id="voice-flow",
+        title="语音会议纪要流",
+        description=(
+            "ingest(确定性清洗) -> summarize -> extract_todos -> finalize(确定性归并)："
+            "转写文本进，摘要+议题+去重待办出。ASR 由外部提供，不绑定语音供应商。"
+        ),
+        graph_shape="ingest -> summarize -> extract_todos -> finalize",
+        tags=("meeting", "transcript", "todos", "asr-friendly"),
+    ),
 }

@@ -42,6 +42,14 @@
   - `--suggest` 读 git 变更按影响映射给出该跑套件的建议；
     `--runs N` 多次采样（逐用例多数决 + 命中率中位数）抑制 live 波动；
     生成项目自带 GitHub Actions（pytest + mock 冒烟 + suggest 输出）
+- `ai-app-template doctor`：环境体检（Python 版本/git/项目结构/venv 依赖/
+  API Key/端口占用），分级 OK/警告/失败并给出修复命令，阻断项退出码 1
+- 第四个模板 `voice-flow`：ingest（ASR 转写确定性清洗：时间戳/说话人标签/
+  填充词）-> summarize（LLM，兜底确定性节选）-> extract_todos（LLM，
+  宁缺毋滥）-> finalize（确定性去重排序）；ASR 外置，不绑定语音供应商
+- 模板市场：`create -t <git-url>[#子目录]`（或本地 git 仓库路径）从任意
+  仓库安装第三方模板；`--depth 1` 拉取、纯文件复制渲染不执行外部代码；
+  支持可选 `template.json` 清单与 `_overlay.json`/`README_APPEND.md` 约定
 - 工程配套：Dockerfile、docker-compose（可选观测栈 profile）、
   GitHub Actions CI（ruff + pytest，3.10–3.12 双 OS）、九篇中文教程、
   架构决策记录（ADR×10）、设计审查与发布指南

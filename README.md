@@ -57,6 +57,28 @@ python -m app.eval.run_eval --mock   # 一键跑评测集
 | `review-flow`（默认） | `parse -> extract ->(重试) review -> summary` | 入门、文档审阅类应用 |
 | `rag-agent` | `retrieve -> generate(citations) -> verify` | 知识库问答，自带确定性引用校验 |
 | `multi-agent` | `supervisor -> researcher/writer/critic 循环` | Supervisor 模式多智能体协作 |
+| `voice-flow` | `ingest -> summarize -> extract_todos -> finalize` | 会议转写 → 摘要/议题/去重待办；ASR 外置不绑定供应商 |
+
+## 模板市场
+
+不只是内置模板——任何 git 仓库都能作为第三方模板安装（`--depth 1` 拉取后按纯文件复制渲染，**不执行仓库中任何代码**；但内容会进入你的项目，请只安装可信来源）：
+
+```bash
+ai-app-template create my-app -t https://github.com/someone/awesome-template.git
+ai-app-template create my-app -t git+https://github.com/someone/repo.git#subdir   # 指定子目录
+ai-app-template create my-app -t D:/local/template-repo                          # 本地 git 仓库
+```
+
+第三方模板 = 与内置变体同构的目录：放差异文件（同名覆盖 base），可选 `_overlay.json`（废弃清单）、`README_APPEND.md`（追加说明）、`template.json`（`{"id","title","description"}` 清单）。发布你自己的模板就是把这样一个目录推上 git。
+
+## 环境体检
+
+```bash
+ai-app-template doctor                    # CLI 自身环境
+ai-app-template doctor --path my-app      # 生成项目全量体检
+```
+
+检查 Python 版本 / git / 项目结构 / venv 依赖 / API Key / 端口占用，分级 OK/警告/失败，失败项带修复命令，存在阻断项时退出码 1。「跑不起来」的问题一条命令定位。
 
 ## 生成项目内置的工程化能力
 
@@ -92,10 +114,10 @@ make demo          # 本地生成一个演示项目体验 CLI
 ## 路线图
 
 - [x] 自动评测集生成与回退门禁（P0+P1+P2 全部完成）：身份卡进 → 边界/异常/对抗用例出 → 基线回退结论 → `--suggest` 变更感知 + `--runs N` 抗波动（[设计文档](docs/designs/auto-eval-design.md)、[教程 09](docs/tutorials/09-自动评测集与回退门禁.md)）
+- [x] `ai-app-template doctor`：环境体检（版本/git/结构/依赖/API Key/端口）
+- [x] 第四个模板 `voice-flow`：会议转写 -> 摘要/议题/去重待办
+- [x] 模板市场：从任意 git 仓库安装第三方模板（`-t <git-url>[#子目录]`）
 - [ ] 发布 PyPI（`pip install ai-app-template`）
-- [ ] `ai-app-template doctor`：环境体检（Python 版本 / API Key / 端口占用）
-- [ ] 第四个模板：`voice-flow`（语音转写 -> 摘要 -> 待办抽取）
-- [ ] 模板市场：从任意 git 仓库安装第三方模板
 - [ ] 英文完整文档
 
 ## License

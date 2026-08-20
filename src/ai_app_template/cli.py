@@ -111,8 +111,6 @@ def create(
             template = _pick_template_interactively()
         else:
             _fail("非交互环境请用 --template 指定模板（可选：" + "、".join(TEMPLATES) + "）")
-    if template not in TEMPLATES:
-        _fail(f"未知模板 {template!r}，可选：{'、'.join(TEMPLATES)}")
 
     try:
         validate_project_name(name)
@@ -133,6 +131,37 @@ def create(
                 shutil.rmtree(child)
             else:
                 child.unlink()
+
+    # 模板市场：-t <git 引用/URL/本地 git 仓库>，从第三方仓库拉取变体
+    from ai_app_template.marketplace import fetched_template, is_remote_template
+
+    if template not in TEMPLATES and is_remote_template(template):
+        from ai_app_template.marketplace import MarketplaceError
+
+        try:
+            with fetched_template(template) as (variant_dir, manifest):
+                template_id = manifest.get("id") or variant_dir.name
+                title = manifest.get("title") or f"第三方模板 {template_id}"
+                ctx = build_context(
+                    name, template_id, title, description or manifest.get("description", ""), author
+                )
+                written = generate(target, template_id, ctx, variant_dir=variant_dir)
+                console.print(
+                    Panel(
+                        f"[green]已生成 [bold]{len(written)}[/bold] 个文件[/green]\n"
+                        f"模板：[cyan]{title}[/cyan]（第三方：{template}）\n"
+                        f"位置：{target}",
+                        title="ai-app-template 创建成功",
+                        border_style="green",
+                    )
+                )
+                console.print(_next_steps(target))
+                return
+        except MarketplaceError as exc:
+            _fail(str(exc))
+
+    if template not in TEMPLATES:
+        _fail(f"未知模板 {template!r}，可选：{'、'.join(TEMPLATES)}（或用 git URL 安装第三方模板）")
 
     info = TEMPLATES[template]
     ctx = build_context(name, template, info.title, description, author)
@@ -160,6 +189,36 @@ def version_callback(value: bool) -> None:
     if value:
         console.print(f"ai-app-template {__version__}")
         raise typer.Exit()
+
+
+@app.command()
+def doctor(
+    path: Path = typer.Option(None, "--path", help="生成项目目录；缺省只体检 CLI 自身环境"),
+    port: int = typer.Option(8000, "--port", help="检查的服务端口（uvicorn 默认 8000）"),
+) -> None:
+    """环境体检：Python 版本 / git / 项目结构 / 依赖 / API Key / 端口占用。"""
+    from ai_app_template.doctor import run_doctor
+
+    project = path.expanduser().resolve() if path else None
+    if project and not project.is_dir():
+        _fail(f"目录不存在：{project}")
+    results = run_doctor(project, port=port)
+
+    console.print(f"[bold]环境体检{f'：{project}' if project else ''}[/bold]")
+    for item in results:
+        style = {"ok": "green", "warn": "yellow", "fail": "red"}[item.status]
+        console.print(f"  [{style}]{item.glyph}[/{style}] {item.name} —— {item.detail}")
+
+    failures = [r for r in results if r.status == "fail"]
+    warns = [r for r in results if r.status == "warn"]
+    console.print(
+        f"\n合计：{len(results) - len(failures) - len(warns)} 项通过、"
+        f"{len(warns)} 项警告、{len(failures)} 项失败"
+    )
+    if failures:
+        console.print("[red]存在失败项：按上方「修复：」提示处理后重试。[/red]")
+        raise typer.Exit(code=1)
+    console.print("[green]没有阻断性问题。[/green]")
 
 
 @app.callback()
