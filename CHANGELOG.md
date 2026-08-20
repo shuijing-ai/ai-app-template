@@ -31,7 +31,7 @@
   CI 退出码门禁 + Markdown 报告
 - 离线测试体系：节点级 FakeGateway（输入感知）与 SDK 级 ScriptedClient
   两层替身；生成项目零 API Key 全绿
-- 自动评测集生成与回退门禁（auto-eval P0+P1，三模板）：
+- 自动评测集生成与回退门禁（auto-eval P0+P1+P2，三模板）：
   - 身份卡（`app/eval/identity.json`）唯一输入，`gen_cases` 走模型网关
     按 11 类边界/异常/对抗分类矩阵生成用例，经确定性校验（关键词逐字
     在输入中、sub_kind 语义约束、批内去重）后固化到 `app/eval/generated/`
@@ -39,8 +39,11 @@
     `--set-baseline` 签字固化质量线；live 跑分自动对比基线并输出
     pass/rollback/warn/improve 结论（总分容差 5pp、非焦点套件 10pp 回退线、
     焦点套件 15pp 警告线），建议回退时退出码 1 可直接当 CI 门禁
+  - `--suggest` 读 git 变更按影响映射给出该跑套件的建议；
+    `--runs N` 多次采样（逐用例多数决 + 命中率中位数）抑制 live 波动；
+    生成项目自带 GitHub Actions（pytest + mock 冒烟 + suggest 输出）
 - 工程配套：Dockerfile、docker-compose（可选观测栈 profile）、
-  GitHub Actions CI（ruff + pytest，3.10–3.12 双 OS）、八篇中文教程、
+  GitHub Actions CI（ruff + pytest，3.10–3.12 双 OS）、九篇中文教程、
   架构决策记录（ADR×10）、设计审查与发布指南
 
 ### 修复

@@ -44,7 +44,7 @@ git push origin v0.1.0
 
 1. **演示 GIF**：`ai-app-template list` + `create` + `pytest 全绿` 录 15 秒
    （Windows 可用 ScreenToGif），贴在 README 快速开始之前
-2. **英文教程翻译**：README.en.md 已就位，下一步是把八篇教程中的
+2. **英文教程翻译**：README.en.md 已就位，下一步是把九篇教程中的
    03/06 两篇（网关/测试）翻成英文放 `docs/tutorials-en/`
 3. **Discussions 置顶**：学习路线帖 + 「用 ai-app-template 做了什么」展示帖
 
@@ -81,7 +81,7 @@ twine upload dist/*                # 需要 PyPI 账号的 API Token
 
 ## 3. 内容平台（获客漏斗）
 
-### 掘金系列（对应八篇教程）
+### 掘金系列（对应九篇教程）
 
 | 顺序 | 标题建议 | 引流钩子 |
 | --- | --- | --- |

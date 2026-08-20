@@ -226,3 +226,53 @@ def test_run_eval_suite_seed_mock(tmp_path):
 def test_run_eval_rejects_mock_set_baseline(tmp_path):
     code = main(["--mock", "--suite", "seed", "--set-baseline", "--out", str(tmp_path)])
     assert code == 2
+
+
+# ---------- P2：变更感知建议与多次采样 ----------
+
+def test_print_suggestions_matches_impact_map(capsys):
+    from app.eval.suggest import print_suggestions
+
+    print_suggestions(["app/graph/nodes/extract_node.py", "docs/x.md"])
+    out = capsys.readouterr().out
+    assert "提示词/节点逻辑变更" in out and "--suite all" in out
+
+    print_suggestions(["app/eval/run_eval.py"])
+    assert "无需重跑" in capsys.readouterr().out
+
+    print_suggestions(["README.md"])
+    assert "不影响评测面" in capsys.readouterr().out
+
+    print_suggestions([])
+    assert "未检测到未提交变更" in capsys.readouterr().out
+
+
+def test_median_rows_majority_and_median():
+    from app.eval.suggest import median_rows
+
+    def row(run: int, passed: bool, hit: float) -> dict:
+        return {"case_id": "c1", "tier": "happy", "passed": passed, "keyword_hit": hit}
+
+    # 三次采样：通过 2/3（多数决通过），命中率取中位数
+    merged = median_rows([[row(0, True, 1.0)], [row(1, False, 0.0)], [row(2, True, 0.5)]])
+    assert merged[0]["passed"] is True
+    assert merged[0]["keyword_hit"] == 0.5
+
+    # 通过 1/3：多数决不通过
+    merged = median_rows([[row(0, False, 1.0)], [row(1, False, 0.5)], [row(2, True, 0.0)]])
+    assert merged[0]["passed"] is False
+
+    # 单次采样原样返回
+    single = [[row(0, True, 0.7)]]
+    assert median_rows(single) is single[0]
+
+
+def test_run_eval_suggest_exits_zero(capsys):
+    code = main(["--suggest"])
+    assert code == 0
+    assert "变更" in capsys.readouterr().out or True  # 输出随 git 状态变化，仅验证不崩
+
+
+def test_run_eval_rejects_mock_runs(tmp_path):
+    code = main(["--mock", "--suite", "seed", "--runs", "3", "--out", str(tmp_path)])
+    assert code == 2

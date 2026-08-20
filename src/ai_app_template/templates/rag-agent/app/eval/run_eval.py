@@ -26,6 +26,7 @@ try:
         total_score,
     )
     from app.eval.test_cases import SAMPLE_CASES, EvalCase
+    from app.eval.suggest import changed_files, median_rows, print_suggestions
     from app.graph.builder import build_graph
 except ModuleNotFoundError as exc:
     raise SystemExit(
@@ -185,10 +186,19 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--threshold", type=float, default=None)
     parser.add_argument("--out", type=str, default="eval_results")
     parser.add_argument("--set-baseline", action="store_true", help="把本次跑分固化为基线（仅真实模式）")
+    parser.add_argument("--runs", type=int, default=1, help="连跑 N 次取多数决/中位数后判定（仅真实模式）")
+    parser.add_argument("--suggest", action="store_true", help="不跑分：读 git 变更，打印该跑哪个套件的建议")
     args = parser.parse_args(argv)
+
+    if args.suggest:
+        print_suggestions(changed_files())
+        return 0
 
     if args.mock and args.set_baseline:
         print("--set-baseline 仅用于真实模式（mock 没有质量语义）", file=sys.stderr)
+        return 2
+    if args.mock and args.runs > 1:
+        print("--runs 仅用于真实模式（mock 结果是确定性的，多次采样无意义）", file=sys.stderr)
         return 2
 
     settings = get_settings()
@@ -211,7 +221,13 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     graph = build_graph(gateway, settings)
-    rows = [run_case(graph, case, threshold, mock=args.mock) for case in cases]
+    runs = [
+        [run_case(graph, case, threshold, mock=args.mock) for case in cases]
+        for _ in range(max(1, args.runs))
+    ]
+    rows = median_rows(runs)
+    if args.runs > 1:
+        print(f"（--runs {args.runs}：逐用例多数决 + 命中率中位数后进入判定）")
 
     _print_table(rows)
 

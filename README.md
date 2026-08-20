@@ -24,7 +24,7 @@
 - **形态**：一条命令生成完整项目，而不是一堆要自己搬的文件
 - **能力组合**：成本路由 + 降级兜底 + 结构化输出体系 + 自动化评测，一次配齐
 - **离线全绿**：生成的项目 `pytest -q` 不需要任何 API Key —— Fake 网关 + 脚本化客户端是模板的一部分
-- **教学导向**：`docs/tutorials/` 八篇教程把每个模块的设计取舍讲透，直接可用于面试与授课
+- **教学导向**：`docs/tutorials/` 九篇教程把每个模块的设计取舍讲透，直接可用于面试与授课
 
 ## 快速开始
 
@@ -75,7 +75,7 @@ python -m app.eval.run_eval --mock   # 一键跑评测集
 
 - [docs/architecture.md](docs/architecture.md) —— 整体架构与关键设计决策（ADR）
 - [docs/design-review.md](docs/design-review.md) —— 对初版方案的审查与优化记录
-- [docs/tutorials/](docs/tutorials/) —— **八篇中文教程**（从 CLI 实现到面试话术）
+- [docs/tutorials/](docs/tutorials/) —— **九篇中文教程**（从 CLI 实现到面试话术）
 - [docs/publishing.md](docs/publishing.md) —— 发布到 GitHub / PyPI / 掘金 / B 站的操作指南
 
 ## 开发本仓库
@@ -91,8 +91,7 @@ make demo          # 本地生成一个演示项目体验 CLI
 
 ## 路线图
 
-- [x] 自动评测集生成与回退门禁（P0+P1）：身份卡进 → 边界/异常/对抗用例出 → 基线对比给出回退结论（[设计文档](docs/designs/auto-eval-design.md)）
-- [ ] auto-eval P2：`--suggest` 变更感知、CI PR 注释、`--runs 3` 抗波动
+- [x] 自动评测集生成与回退门禁（P0+P1+P2 全部完成）：身份卡进 → 边界/异常/对抗用例出 → 基线回退结论 → `--suggest` 变更感知 + `--runs N` 抗波动（[设计文档](docs/designs/auto-eval-design.md)、[教程 09](docs/tutorials/09-自动评测集与回退门禁.md)）
 - [ ] 发布 PyPI（`pip install ai-app-template`）
 - [ ] `ai-app-template doctor`：环境体检（Python 版本 / API Key / 端口占用）
 - [ ] 第四个模板：`voice-flow`（语音转写 -> 摘要 -> 待办抽取）

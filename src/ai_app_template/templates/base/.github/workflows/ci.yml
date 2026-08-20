@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[dev]"
+      - name: 离线单元测试（零 API Key）
+        run: pytest -q
+      - name: 评测管道冒烟（mock）
+        run: python -m app.eval.run_eval --mock
+      - name: 变更影响建议
+        run: python -m app.eval.run_eval --suggest
+      # 真实质量门禁（含回退判定）请在本地配置 API Key 后运行：
+      #   python -m app.eval.run_eval --suite all --runs 3
